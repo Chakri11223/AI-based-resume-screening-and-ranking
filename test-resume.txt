@@ -1,0 +1,8 @@
+John Doe
+Software Engineer
+john.doe@email.com
++1-555-123-4567
+
+Experience: 5 years
+Skills: React, Node.js, JavaScript, TypeScript
+Education: Bachelor of Computer Science

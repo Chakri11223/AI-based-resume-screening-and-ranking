@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Resume Upload</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .upload-area { 
+            border: 2px dashed #ccc; 
+            padding: 20px; 
+            text-align: center; 
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .upload-area.dragover { border-color: #007bff; background-color: #f8f9fa; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .file-list { margin: 10px 0; }
+        .file-item { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            margin: 5px 0; 
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-btn { 
+            background: #dc3545; 
+            color: white; 
+            border: none; 
+            padding: 5px 10px; 
+            border-radius: 3px; 
+            cursor: pointer;
+        }
+        .result { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .progress { 
+            width: 100%; 
+            height: 20px; 
+            background: #f0f0f0; 
+            border-radius: 10px; 
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar { 
+            height: 100%; 
+            background: #007bff; 
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Resume Upload</h1>
+        <p>This is a simple test page to verify the resume upload functionality.</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>Drag and drop resume files here, or click to select files</p>
+            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx" style="display: none;">
+            <button onclick="document.getElementById('fileInput').click()">Select Files</button>
+        </div>
+        
+        <div class="file-list" id="fileList"></div>
+        
+        <div>
+            <label for="jobDescription">Job Description (optional):</label><br>
+            <textarea id="jobDescription" rows="4" cols="50" placeholder="Enter job description for AI analysis..."></textarea>
+        </div>
+        
+        <button id="uploadBtn" onclick="uploadFiles()" disabled>Upload Resumes</button>
+        <button onclick="clearFiles()">Clear Files</button>
+        
+        <div class="progress" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const result = document.getElementById('result');
+        
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            const validFiles = Array.from(files).filter(file => {
+                const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                return validTypes.includes(file.type);
+            });
+            
+            selectedFiles = [...selectedFiles, ...validFiles];
+            updateFileList();
+            updateUploadButton();
+        }
+        
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateUploadButton();
+        }
+        
+        function updateUploadButton() {
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+        
+        function clearFiles() {
+            selectedFiles = [];
+            updateFileList();
+            updateUploadButton();
+            result.innerHTML = '';
+            progressContainer.style.display = 'none';
+        }
+        
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) {
+                showResult('Please select at least one file to upload.', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('resumes', file);
+            });
+            
+            const jobDescription = document.getElementById('jobDescription').value.trim();
+            if (jobDescription) {
+                formData.append('jobDescription', jobDescription);
+            }
+            
+            // Show progress
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            uploadBtn.disabled = true;
+            
+            try {
+                console.log('Uploading files:', selectedFiles.map(f => f.name));
+                console.log('Job description:', jobDescription);
+                
+                const response = await fetch('http://localhost:5001/api/upload/resumes', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    
+                    progressBar.style.width = '100%';
+                    showResult(`✅ Upload successful! ${data.message}`, 'success');
+                    
+                    if (data.candidates && data.candidates.length > 0) {
+                        let candidatesHtml = '<h3>Analyzed Candidates:</h3>';
+                        data.candidates.forEach(candidate => {
+                            candidatesHtml += `
+                                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                                    <strong>${candidate.name}</strong> - Score: ${candidate.score}/100<br>
+                                    <small>${candidate.email}</small><br>
+                                    <small>${candidate.aiSummary}</small>
+                                </div>
+                            `;
+                        });
+                        result.innerHTML += candidatesHtml;
+                    }
+                    
+                    clearFiles();
+                } else {
+                    const errorText = await response.text();
+                    console.error('Upload failed:', errorText);
+                    showResult(`❌ Upload failed: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showResult(`❌ Upload error: ${error.message}`, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 2000);
+            }
+        }
+        
+        function showResult(message, type) {
+            result.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

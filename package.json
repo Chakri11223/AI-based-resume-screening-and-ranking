@@ -1,0 +1,47 @@
+{
+  "name": "ai-based-resume-screening-ranking",
+  "version": "1.0.0",
+  "description": "AI Based Resume Screening and Ranking - Intelligent talent assessment platform",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev-simple",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:mock": "concurrently \"npm run dev:backend:mock\" \"npm run dev:frontend\"",
+    "dev:backend:mock": "cd backend && npm run dev",
+    "dev:backend:full": "cd backend && npm run dev-full",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "npm run start:backend && npm run start:frontend",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run preview",
+    "clean": "rm -rf node_modules backend/node_modules frontend/node_modules backend/dist frontend/dist",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "ai",
+    "resume",
+    "screening",
+    "ranking",
+    "recruitment",
+    "talent",
+    "assessment",
+    "react",
+    "nodejs",
+    "gemini",
+    "machine-learning"
+  ],
+  "author": "AI Resume Screening Team",
+  "license": "MIT"
+}
